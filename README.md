@@ -171,7 +171,7 @@ Raw ASC Data (CDC BRFSS 2022–2024)
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/diabetes-risk-prediction.git
+git clone https://github.com/kota2003/diabetes-risk-prediction.git
 cd diabetes-risk-prediction
 
 # Install dependencies
