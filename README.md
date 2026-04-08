@@ -22,27 +22,34 @@ diabetes-risk-prediction/
 │   │   ├── brfss_2023_diabetes.csv
 │   │   ├── brfss_2024_diabetes.csv
 │   │   └── brfss_2022_2024_combined.csv
-│   └── processed/                # Cleaned, analysis-ready data (not tracked by Git)
-│       └── brfss_cleaned.csv
+│   └── processed/                # Cleaned and feature-engineered data (not tracked by Git)
+│       ├── brfss_cleaned.csv
+│       ├── X_train.csv
+│       ├── X_test.csv
+│       ├── X_train_smote.csv
+│       ├── y_train.csv
+│       ├── y_test.csv
+│       └── y_train_smote.csv
 │
 ├── docs/
 │   ├── ProjectScope.md           # Project specification
 │   ├── methodology.md            # To be completed in Phase 5
 │   └── findings.md               # To be completed in Phase 5
 │
+├── models/
+│   ├── scaler.pkl                # Fitted StandardScaler (Phase 3)
+│   └── saved_models/             # Trained models (Phase 4)
+│
 ├── notebooks/
 │   ├── 00_data_collection.ipynb      ✅ Done
 │   ├── 01_data_understanding.ipynb   ✅ Done
 │   ├── 02_cleaning.ipynb             ✅ Done
-│   ├── 03_feature_engineering.ipynb  ⏳ Pending
+│   ├── 03_feature_engineering.ipynb  ✅ Done
 │   ├── 04_modeling.ipynb             ⏳ Pending
 │   └── 05_evaluation.ipynb           ⏳ Pending
 │
-├── models/
-│   └── saved_models/
-│
 └── outputs/
-    ├── figures/                  # 12 figures generated (Phases 1–2)
+    ├── figures/                  # 13 figures generated (Phases 1–3)
     └── reports/
 ```
 
@@ -72,45 +79,45 @@ learning models using large-scale, nationally representative survey data to supp
 |---|---|---|
 | Sample size | 768 | **1,252,580** |
 | Demographics | Pima Indian women only | Nationally representative, all adults |
-| Feature count | 7 | **16** |
+| Feature count | 7 | **14** (after Phase 3) |
 | Feature type | Clinical biomarkers only | Behavioural + demographic + comorbidity |
 | Recency | 1990s | **2022–2024** |
 | Real-world messiness | Pre-cleaned | Special codes, structural absences, multi-year |
 
-### Cleaned Feature Set (16 features + 1 target)
+### Final Feature Set After Phase 3 (14 features + 1 target)
 
 | Variable | Type | Description | Predictive rank |
 |----------|------|-------------|----------------|
-| `GENHLTH` | Ordinal | Self-rated general health (1=Excellent…5=Poor) | #1 (r=0.27) |
-| `_AGEG5YR` | Ordinal | Age group in 5-year intervals (1=18–24…13=80+) | #2 (r=0.23) |
-| `DIFFWALK` | Binary | Difficulty walking or climbing stairs | #3 (r=0.22) |
-| `_BMI5CAT` | Ordinal | BMI category (1=Underweight…4=Obese) | #4 (r=0.19) |
-| `PHYSHLTH` | Continuous | Days physical health not good (past 30 days) | #5 (r=0.17) |
-| `POORHLTH` | Continuous | Days poor health limited activities (past 30 days) | #6 (r=0.17) |
-| `CVDINFR4` | Binary | Heart attack history | #7 (r=0.15) |
-| `INCOME3` | Ordinal | Annual household income bracket | #8 (r=0.15) |
-| `EXERANY2` | Binary | Physical activity in past 30 days | #9 (r=0.15) |
-| `MENTHLTH` | Continuous | Days mental health not good (past 30 days) | — |
-| `CHECKUP1` | Ordinal | Time since last routine checkup | — |
-| `CVDSTRK3` | Binary | Stroke history | — |
-| `EDUCA` | Ordinal | Highest education level | — |
-| `_SEX` | Binary | Sex (1=Male, 2=Female) | — |
-| `_SMOKER3` | Ordinal | Smoking status (1=Current daily…4=Never) | — |
-| `YEAR` | Categorical | Survey year (2022 / 2023 / 2024) | — |
+| `GENHLTH` | Ordinal (1–5) | Self-rated general health (1=Excellent…5=Poor) | #1 (r=0.27) |
+| `_AGEG5YR` | Ordinal (1–14) | Age group in 5-year intervals | #2 (r=0.23) |
+| `DIFFWALK` | Binary (0/1) | Difficulty walking or climbing stairs | #3 (r=0.22) |
+| `_BMI5CAT` | Ordinal (1–4) | BMI category (1=Underweight…4=Obese) | #4 (r=0.19) |
+| `PHYSHLTH` | Continuous (scaled) | Days physical health not good (past 30 days) | #5 (r=0.17) |
+| `CVDINFR4` | Binary (0/1) | Heart attack history | #7 (r=0.15) |
+| `INCOME3` | Ordinal (1–11) | Annual household income bracket | #8 (r=0.15) |
+| `EXERANY2` | Binary (0/1) | Physical activity in past 30 days | #9 (r=0.15) |
+| `MENTHLTH` | Continuous (scaled) | Days mental health not good (past 30 days) | — |
+| `CHECKUP1` | Ordinal (1–4, 8) | Time since last routine checkup | — |
+| `CVDSTRK3` | Binary (0/1) | Stroke history | — |
+| `EDUCA` | Ordinal (1–6) | Highest education level | — |
+| `_SEX` | Binary (0/1) | Sex (1=Male, 0=Female) | — |
+| `_SMOKER3` | Ordinal (1–4) | Smoking status (1=Current daily…4=Never) | — |
 | `DIABETES` | **Binary target** | Diabetes diagnosis (1=Yes, 0=No) | — |
 
 > **Variables dropped in Phase 2:**
-> `BPHIGH6`, `_CHOLCH3` — present in 2023 only (67.6% missing)
-> `PREDIAB2` — 65.2% missing + target leakage
-> `SEXVAR` — exact duplicate of `_SEX` (r=1.00)
-> `_STATE` — 50-level FIPS code; no ordinal meaning
-> `_RACE` — structurally absent in 2022; imputing demographic identity is ethically unsafe
+> `BPHIGH6`, `_CHOLCH3` — present in 2023 only (67.6% missing);
+> `PREDIAB2` — 65.2% missing + target leakage;
+> `SEXVAR` — exact duplicate of `_SEX` (r=1.00);
+> `_STATE` — 50-level FIPS code, no ordinal meaning;
+> `_RACE` — structurally absent in 2022, imputing demographic identity is ethically unsafe.
+>
+> **Variables dropped in Phase 3:**
+> `POORHLTH` — multicollinearity with `PHYSHLTH` (r=0.70), lower Phase 1 rank;
+> `YEAR` — temporal leakage risk, prevalence shift <1pp across years.
 
 ---
 
-## 3. Methodology
-
-### Pipeline
+## 3. Pipeline
 
 ```
 CDC BRFSS ASC + HTML Codebooks (2022, 2023, 2024)
@@ -121,114 +128,99 @@ CDC BRFSS ASC + HTML Codebooks (2022, 2023, 2024)
 ↓
 02_cleaning.ipynb            →  data/processed/brfss_cleaned.csv         (1,252,580 × 17)  ✅
 ↓
-03_feature_engineering.ipynb →  X_train, X_test, y_train, y_test                          ⏳
+03_feature_engineering.ipynb →  data/processed/ (6 split files)          (14 features)     ✅
 ↓
 04_modeling.ipynb            →  models/saved_models/                                       ⏳
 ↓
 05_evaluation.ipynb          →  outputs/reports/, outputs/figures/                         ⏳
 ```
 
-### Models
+---
 
-- **Logistic Regression** — interpretable linear baseline
-- **Random Forest** — ensemble; built-in feature importance
-- **XGBoost** — gradient boosting; typically best performance on tabular data
+## 4. Planned Models
 
-### Evaluation Metrics
+| Model | Rationale |
+|-------|-----------|
+| Logistic Regression | Interpretable baseline; coefficient-level feature importance |
+| Random Forest | Ensemble method; built-in feature importance; robust to scale |
+| XGBoost | Gradient boosting; expected best performance on large tabular data |
 
-- Accuracy · Precision · Recall · F1-score · **ROC-AUC** (primary metric for imbalanced classification)
+Each model will be trained under two class imbalance strategies:
+- `class_weight='balanced'` — adjusts loss function, no resampling
+- SMOTE — synthetic minority oversampling on training set only
 
 ---
 
-## 4. Results
+## 5. Evaluation Metrics
 
-| Model | Accuracy | ROC-AUC | F1-score |
-|---|---|---|---|
-| Logistic Regression | — | — | — |
-| Random Forest | — | — | — |
-| XGBoost | — | — | — |
+| Metric | Role |
+|--------|------|
+| **ROC-AUC** | Primary — robust to class imbalance |
+| Precision | Secondary |
+| Recall | Secondary — critical for medical screening (minimise false negatives) |
+| F1-score | Secondary |
+| Confusion Matrix | Per model |
 
-*Results will be updated upon completion of Phase 5.*
-
----
-
-## 5. Interpretation
-
-- Feature importance from Random Forest and XGBoost
-- SHAP values for global and individual prediction explanations
-- Key predictors identified in Phase 1 EDA:
-  **General health status, age group, walking difficulty, BMI, physical health days, income**
+Model interpretability via **SHAP values** (global + individual explanations).
 
 ---
 
-## 6. Limitations
+## 6. Feature Engineering Summary (Phase 3)
 
-- **Self-reported data** — subject to recall bias and social desirability effects
-- **Cross-sectional design** — causal direction cannot be established from survey responses
-- **No clinical biomarkers** — glucose, HbA1c, and insulin are not collected by BRFSS;
-  this model is a behavioural/demographic screening tool, not a clinical diagnostic instrument
-- **US population only** — limited generalisability to other countries or health systems
-- **Class imbalance** — 14.4% positive rate; addressed via SMOTE or class weights in Phase 3
-- **`_RACE` dropped** — structurally absent in 2022; fairness analysis across demographic groups is limited
+| Decision | Detail |
+|----------|--------|
+| Dropped | `POORHLTH` — multicollinearity with `PHYSHLTH` (r=0.70); lower Phase 1 rank |
+| Dropped | `YEAR` — temporal leakage; prevalence stable (<1pp shift across years) |
+| Binary recoded | `DIFFWALK`, `EXERANY2`, `CVDINFR4`, `CVDSTRK3`, `_SEX` — BRFSS 1/2 → 0/1 |
+| Ordinal cast | `GENHLTH`, `_AGEG5YR`, `_BMI5CAT`, `INCOME3`, `CHECKUP1`, `EDUCA`, `_SMOKER3` — float64 → int |
+| Scaled | `PHYSHLTH`, `MENTHLTH` — StandardScaler, fit on train only |
+| Split | 80/20 stratified, random_state=42 |
+| Imbalance | SMOTE on train only → 857,422 per class (50/50); `class_weight='balanced'` as alternative |
 
 ---
 
-## 7. Setup
+## 7. Limitations
 
-```bash
-# Clone the repository
-git clone https://github.com/kota2003/diabetes-risk-prediction.git
-cd diabetes-risk-prediction
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Launch notebooks
-jupyter notebook
-```
-
-### Data Access
-
-Raw BRFSS data must be downloaded separately from the CDC:
-
-```
-https://www.cdc.gov/brfss/annual_data/annual_data.htm
-```
-
-For each year (2022, 2023, 2024), download:
-- **ASCII Data File** (.zip containing .ASC)
-- **HTML Codebook** (USCODE\*\*.HTML)
-
-Place both files in `data/source/`, then run the notebooks in sequence:
-
-```
-00_data_collection.ipynb   → generates data/raw/
-02_cleaning.ipynb          → generates data/processed/brfss_cleaned.csv
-```
+- No clinical biomarkers (glucose, HbA1c) — positioned as behavioural/demographic screening tool
+- Self-report bias inherent in survey data
+- `_RACE` dropped due to structural absence in 2022 — limited fairness analysis
+- US adult population only — generalisability outside the US is limited
 
 ---
 
 ## 8. Tech Stack
 
-| Library | Purpose |
-|---------|---------|
-| Python ≥ 3.10 | Core language |
-| pandas ≥ 2.0 | Data loading and manipulation |
-| numpy ≥ 1.24 | Numerical operations |
-| matplotlib ≥ 3.7 | Plotting |
-| seaborn ≥ 0.12 | Statistical visualisation |
-| scikit-learn ≥ 1.3 | ML models, preprocessing, metrics |
-| xgboost ≥ 2.0 | Gradient boosting model |
-| shap ≥ 0.44 | Model interpretability |
-| jupyter ≥ 1.0 | Notebook environment |
+| Library | Version | Purpose |
+|---------|---------|---------|
+| Python | 3.11 | Core language |
+| pandas | ≥ 2.0 | Data loading and manipulation |
+| numpy | ≥ 1.26 | Numerical operations |
+| matplotlib | ≥ 3.7 | Plotting |
+| seaborn | ≥ 0.12 | Statistical visualisation |
+| scikit-learn | 1.4.2 | ML models, preprocessing, metrics |
+| imbalanced-learn | 0.14.1 | SMOTE oversampling |
+| statsmodels | ≥ 0.14 | VIF calculation |
+| scipy | ≥ 1.11 | Chi-square test |
+| xgboost | ≥ 2.0 | Gradient boosting model |
+| shap | ≥ 0.44 | Model interpretability |
+| joblib | ≥ 1.3 | Model and scaler serialisation |
+| jupyter | ≥ 1.0 | Notebook environment |
 
 ---
 
 ## 9. Reproducibility
 
 All notebooks are self-contained and designed to run in sequence (00 → 05).
-Random seeds are set where applicable.
+Random seeds are set where applicable (`random_state=42`).
 All cleaning and modelling decisions are documented in `ProjectDriven.md`.
+
+**Environment:** Use the `diabetes-ml` conda environment (Python 3.11).
+See `requirements.txt` for pinned library versions.
+
+To reproduce from scratch:
+1. Download BRFSS ASCII files and HTML codebooks for 2022–2024 from https://www.cdc.gov/brfss/annual_data/annual_data.htm
+2. Place in `data/source/`
+3. Run notebooks 00 → 03 in sequence
 
 ---
 
