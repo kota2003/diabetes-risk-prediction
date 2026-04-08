@@ -12,17 +12,23 @@ diabetes-risk-prediction/
 │
 ├── README.md
 ├── requirements.txt
+├── ProjectDriven.md              # Living project log — updated each phase
 ├── .gitignore
 │
 ├── data/
-│   ├── source/               # Original ASC + HTML codebook files (not tracked by Git)
-│   ├── raw/                  # Extracted CSVs (not tracked by Git)
+│   ├── source/                   # CDC ASC + HTML codebook files (not tracked by Git)
+│   ├── raw/                      # Extracted year CSVs + combined (not tracked by Git)
 │   │   ├── brfss_2022_diabetes.csv
 │   │   ├── brfss_2023_diabetes.csv
 │   │   ├── brfss_2024_diabetes.csv
 │   │   └── brfss_2022_2024_combined.csv
-│   └── processed/            # Cleaned, analysis-ready data (not tracked by Git)
+│   └── processed/                # Cleaned, analysis-ready data (not tracked by Git)
 │       └── brfss_cleaned.csv
+│
+├── docs/
+│   ├── ProjectScope.md           # Project specification
+│   ├── methodology.md            # To be completed in Phase 5
+│   └── findings.md               # To be completed in Phase 5
 │
 ├── notebooks/
 │   ├── 00_data_collection.ipynb      ✅ Done
@@ -36,7 +42,7 @@ diabetes-risk-prediction/
 │   └── saved_models/
 │
 └── outputs/
-    ├── figures/
+    ├── figures/                  # 12 figures generated (Phases 1–2)
     └── reports/
 ```
 
@@ -56,10 +62,9 @@ learning models using large-scale, nationally representative survey data to supp
 - **Source**: CDC Behavioral Risk Factor Surveillance System (BRFSS)
 - **Years**: 2022, 2023, 2024
 - **Raw samples**: 1,336,125 survey respondents
-- **Cleaned samples**: 1,252,580 (after exclusions and imputation)
-- **Target**: `DIABETES` — diabetes diagnosis (binary: 1 = Diabetes, 0 = No Diabetes)
-- **Class split**: 14.4% positive (diabetes) / 85.6% negative (no diabetes)
-- **Features**: 16 (demographics, health behaviours, chronic conditions)
+- **Cleaned samples**: 1,252,580
+- **Target**: `DIABETES` — binary (1 = Diabetes, 0 = No Diabetes)
+- **Class split**: 14.4% positive / 85.6% negative
 
 ### Why BRFSS Over the Pima Indians Benchmark?
 
@@ -72,31 +77,34 @@ learning models using large-scale, nationally representative survey data to supp
 | Recency | 1990s | **2022–2024** |
 | Real-world messiness | Pre-cleaned | Special codes, structural absences, multi-year |
 
-### Cleaned Feature Set
+### Cleaned Feature Set (16 features + 1 target)
 
-| Variable | Type | Description |
-|----------|------|-------------|
-| `GENHLTH` | Ordinal | Self-rated general health — **top predictor (r=0.27)** |
-| `_AGEG5YR` | Ordinal | Age group in 5-year intervals — **2nd predictor (r=0.23)** |
-| `DIFFWALK` | Binary | Difficulty walking or climbing stairs (r=0.22) |
-| `_BMI5CAT` | Ordinal | BMI category (r=0.19) |
-| `PHYSHLTH` | Continuous | Days physical health not good (past 30 days) |
-| `POORHLTH` | Continuous | Days poor health limited activities (past 30 days) |
-| `MENTHLTH` | Continuous | Days mental health not good (past 30 days) |
-| `CVDINFR4` | Binary | Heart attack history |
-| `CVDSTRK3` | Binary | Stroke history |
-| `INCOME3` | Ordinal | Household income bracket |
-| `EDUCA` | Ordinal | Education level |
-| `_SEX` | Binary | Sex |
-| `_SMOKER3` | Ordinal | Smoking status |
-| `CHECKUP1` | Ordinal | Time since last routine checkup |
-| `EXERANY2` | Binary | Physical activity in past 30 days |
-| `YEAR` | Categorical | Survey year (2022 / 2023 / 2024) |
+| Variable | Type | Description | Predictive rank |
+|----------|------|-------------|----------------|
+| `GENHLTH` | Ordinal | Self-rated general health (1=Excellent…5=Poor) | #1 (r=0.27) |
+| `_AGEG5YR` | Ordinal | Age group in 5-year intervals (1=18–24…13=80+) | #2 (r=0.23) |
+| `DIFFWALK` | Binary | Difficulty walking or climbing stairs | #3 (r=0.22) |
+| `_BMI5CAT` | Ordinal | BMI category (1=Underweight…4=Obese) | #4 (r=0.19) |
+| `PHYSHLTH` | Continuous | Days physical health not good (past 30 days) | #5 (r=0.17) |
+| `POORHLTH` | Continuous | Days poor health limited activities (past 30 days) | #6 (r=0.17) |
+| `CVDINFR4` | Binary | Heart attack history | #7 (r=0.15) |
+| `INCOME3` | Ordinal | Annual household income bracket | #8 (r=0.15) |
+| `EXERANY2` | Binary | Physical activity in past 30 days | #9 (r=0.15) |
+| `MENTHLTH` | Continuous | Days mental health not good (past 30 days) | — |
+| `CHECKUP1` | Ordinal | Time since last routine checkup | — |
+| `CVDSTRK3` | Binary | Stroke history | — |
+| `EDUCA` | Ordinal | Highest education level | — |
+| `_SEX` | Binary | Sex (1=Male, 2=Female) | — |
+| `_SMOKER3` | Ordinal | Smoking status (1=Current daily…4=Never) | — |
+| `YEAR` | Categorical | Survey year (2022 / 2023 / 2024) | — |
+| `DIABETES` | **Binary target** | Diabetes diagnosis (1=Yes, 0=No) | — |
 
-> **Note on dropped variables:**  
-> `BPHIGH6` and `_CHOLCH3` were extracted but present in 2023 only (67.6% missing) — dropped in Phase 2.  
-> `_RACE` was absent in 2022 (structural, not random) and was dropped to avoid demographic imputation bias.  
-> `PREDIAB2` was dropped due to target leakage (65.2% missing and directly encodes borderline status).
+> **Variables dropped in Phase 2:**
+> `BPHIGH6`, `_CHOLCH3` — present in 2023 only (67.6% missing)
+> `PREDIAB2` — 65.2% missing + target leakage
+> `SEXVAR` — exact duplicate of `_SEX` (r=1.00)
+> `_STATE` — 50-level FIPS code; no ordinal meaning
+> `_RACE` — structurally absent in 2022; imputing demographic identity is ethically unsafe
 
 ---
 
@@ -105,31 +113,30 @@ learning models using large-scale, nationally representative survey data to supp
 ### Pipeline
 
 ```
-Raw ASC Data (CDC BRFSS 2022–2024)
+CDC BRFSS ASC + HTML Codebooks (2022, 2023, 2024)
 ↓
-00 — Data Collection      (ASC + HTML codebook → CSV; 1,336,125 rows × 23 cols)
+00_data_collection.ipynb     →  data/raw/brfss_2022_2024_combined.csv   (1,336,125 × 23)  ✅
 ↓
-01 — Data Understanding   (EDA, distributions, missing values, correlations; 11 figures)
+01_data_understanding.ipynb  →  outputs/figures/ (11 EDA figures)                          ✅
 ↓
-02 — Data Cleaning        (recode special codes, binarise target, drop/impute;
-                           1,252,580 rows × 17 cols, 0 NaN)
+02_cleaning.ipynb            →  data/processed/brfss_cleaned.csv         (1,252,580 × 17)  ✅
 ↓
-03 — Feature Engineering  (encoding, scaling, class balancing, VIF check)
+03_feature_engineering.ipynb →  X_train, X_test, y_train, y_test                          ⏳
 ↓
-04 — Modeling             (Logistic Regression, Random Forest, XGBoost)
+04_modeling.ipynb            →  models/saved_models/                                       ⏳
 ↓
-05 — Evaluation           (metrics, SHAP values, model comparison)
+05_evaluation.ipynb          →  outputs/reports/, outputs/figures/                         ⏳
 ```
 
 ### Models
 
-- Logistic Regression (interpretable baseline)
-- Random Forest (ensemble; built-in feature importance)
-- XGBoost (gradient boosting; state-of-the-art performance)
+- **Logistic Regression** — interpretable linear baseline
+- **Random Forest** — ensemble; built-in feature importance
+- **XGBoost** — gradient boosting; typically best performance on tabular data
 
 ### Evaluation Metrics
 
-- Accuracy · Precision · Recall · F1-score · ROC-AUC
+- Accuracy · Precision · Recall · F1-score · **ROC-AUC** (primary metric for imbalanced classification)
 
 ---
 
@@ -148,7 +155,7 @@ Raw ASC Data (CDC BRFSS 2022–2024)
 ## 5. Interpretation
 
 - Feature importance from Random Forest and XGBoost
-- SHAP values for individual prediction explanations
+- SHAP values for global and individual prediction explanations
 - Key predictors identified in Phase 1 EDA:
   **General health status, age group, walking difficulty, BMI, physical health days, income**
 
@@ -162,8 +169,7 @@ Raw ASC Data (CDC BRFSS 2022–2024)
   this model is a behavioural/demographic screening tool, not a clinical diagnostic instrument
 - **US population only** — limited generalisability to other countries or health systems
 - **Class imbalance** — 14.4% positive rate; addressed via SMOTE or class weights in Phase 3
-- **`_RACE` dropped** — race/ethnicity was structurally absent in 2022 (one-third of data);
-  fairness analysis across demographic groups is limited without this variable
+- **`_RACE` dropped** — structurally absent in 2022; fairness analysis across demographic groups is limited
 
 ---
 
@@ -189,22 +195,38 @@ Raw BRFSS data must be downloaded separately from the CDC:
 https://www.cdc.gov/brfss/annual_data/annual_data.htm
 ```
 
-Download the **ASCII (.ASC)** file and **HTML codebook** for each year
-(2022, 2023, 2024) and place them in `data/source/`.
-Then run `00_data_collection.ipynb` to generate the raw CSVs,
-followed by `02_cleaning.ipynb` to produce `data/processed/brfss_cleaned.csv`.
+For each year (2022, 2023, 2024), download:
+- **ASCII Data File** (.zip containing .ASC)
+- **HTML Codebook** (USCODE\*\*.HTML)
+
+Place both files in `data/source/`, then run the notebooks in sequence:
+
+```
+00_data_collection.ipynb   → generates data/raw/
+02_cleaning.ipynb          → generates data/processed/brfss_cleaned.csv
+```
 
 ---
 
 ## 8. Tech Stack
 
-Python · Pandas · NumPy · scikit-learn · XGBoost · SHAP · Matplotlib · Seaborn · Jupyter
+| Library | Purpose |
+|---------|---------|
+| Python ≥ 3.10 | Core language |
+| pandas ≥ 2.0 | Data loading and manipulation |
+| numpy ≥ 1.24 | Numerical operations |
+| matplotlib ≥ 3.7 | Plotting |
+| seaborn ≥ 0.12 | Statistical visualisation |
+| scikit-learn ≥ 1.3 | ML models, preprocessing, metrics |
+| xgboost ≥ 2.0 | Gradient boosting model |
+| shap ≥ 0.44 | Model interpretability |
+| jupyter ≥ 1.0 | Notebook environment |
 
 ---
 
 ## 9. Reproducibility
 
-All notebooks are self-contained and run in sequence.
+All notebooks are self-contained and designed to run in sequence (00 → 05).
 Random seeds are set where applicable.
 All cleaning and modelling decisions are documented in `ProjectDriven.md`.
 
