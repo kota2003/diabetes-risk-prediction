@@ -1,6 +1,6 @@
 # ──────────────────────────────────────────────
 # requirements.txt
-# Updated: Phase 0 — Data Collection
+# Updated: Phase 1 — Data Understanding
 # ──────────────────────────────────────────────
 
 # ── Phase 0: Data Collection ──
@@ -10,8 +10,8 @@ jupyter>=1.0.0         # Notebook environment
 ipykernel>=6.0.0       # Jupyter kernel
 
 # ── Phase 1: Data Understanding ──
-# matplotlib>=3.7.0    # to be confirmed
-# seaborn>=0.12.0      # to be confirmed
+matplotlib>=3.7.0      # Distribution plots, heatmaps, bar charts
+seaborn>=0.12.0        # Correlation heatmap
 
 # ── Phase 3: Feature Engineering ──
 # scikit-learn>=1.3.0  # to be confirmed
