@@ -3,7 +3,7 @@
 
 > **Version note:** This document was originally drafted for the Pima Indians dataset (UCI).
 > In Phase 0, the project pivoted to CDC BRFSS for superior scale, recency, and demographic diversity.
-> All sections reflect the actual project state as of Phase 3 completion.
+> All sections reflect the actual project state as of Phase 4 completion.
 
 ---
 
@@ -15,7 +15,7 @@
 | Phase 1 — Data Understanding | ✅ Complete | 11 EDA figures |
 | Phase 2 — Data Cleaning | ✅ Complete | `brfss_cleaned.csv` (1,252,580 × 17) |
 | Phase 3 — Feature Engineering | ✅ Complete | 6 split files + `scaler.pkl` (14 features) |
-| Phase 4 — Modeling | ⏳ Pending | — |
+| Phase 4 — Modeling | ✅ Complete | 6 trained models + 3 figures |
 | Phase 5 — Evaluation | ⏳ Pending | — |
 
 ---
@@ -151,16 +151,16 @@ This project aims to:
 - 80/20 stratified split (random_state=42)
 - Class imbalance: SMOTE on train → 50/50; `class_weight='balanced'` as model-level alternative
 
-### Phase 4 — Modeling ⏳
-- Logistic Regression (interpretable baseline)
-- Random Forest (ensemble; built-in feature importance)
-- XGBoost (gradient boosting; best performance on tabular data)
+### Phase 4 — Modeling ✅
+- Trained 6 model variants across 3 algorithms × 2 imbalance strategies
+- All models evaluated on the same held-out test set (never resampled)
+- Best model: **XGB-Balanced** — ROC-AUC 0.8148, Recall 0.74, Sensitivity 0.80
+- All 6 models saved to `models/saved_models/`
 
 ### Phase 5 — Evaluation & Interpretation ⏳
-- Accuracy, Precision, Recall, F1-score, ROC-AUC
-- Confusion matrix per model
-- SHAP values for global and individual explanations
-- Model comparison and trade-off discussion
+- SHAP values for global and individual explanations (using XGB-Balanced)
+- Feature importance ranking and beeswarm plot
+- Model comparison discussion and limitations
 
 ---
 
@@ -177,7 +177,7 @@ CDC BRFSS ASC + HTML Codebooks (2022, 2023, 2024)
 ↓
 03_feature_engineering.ipynb →  data/processed/ (6 split files)          (14 features)     ✅
 ↓
-04_modeling.ipynb            →  models/saved_models/                                       ⏳
+04_modeling.ipynb            →  models/saved_models/ (6 models)          ROC-AUC 0.8148    ✅
 ↓
 05_evaluation.ipynb          →  outputs/reports/, outputs/figures/                         ⏳
 ```
@@ -187,17 +187,18 @@ CDC BRFSS ASC + HTML Codebooks (2022, 2023, 2024)
 ## 9. Outputs
 
 ### Analytical Outputs
-- Model performance comparison table (Accuracy, Precision, Recall, F1, ROC-AUC)
-- Feature importance ranking (all three models)
-- SHAP summary and waterfall plots
+- Model performance comparison table (Accuracy, Precision, Recall, F1, ROC-AUC) ✅ Phase 4
+- Feature importance ranking (all three models) ⏳ Phase 5
+- SHAP summary and waterfall plots ⏳ Phase 5
 
 ### Visual Outputs
-- ROC curves (all models overlaid)
-- Confusion matrices (per model)
-- SHAP beeswarm / bar plots
-- Missing value before/after imputation chart ✅ (Phase 2)
-- Feature correlation heatmap ✅ (Phase 3)
-- Class distribution before/after SMOTE ✅ (Phase 3)
+- ROC curves (all models overlaid) ✅ Phase 4 — `04_roc_curves.png`
+- Confusion matrices (per model, normalised) ✅ Phase 4 — `04_confusion_matrices.png`
+- Model comparison bar chart (Recall & ROC-AUC) ✅ Phase 4 — `04_model_comparison.png`
+- SHAP beeswarm / bar plots ⏳ Phase 5
+- Missing value before/after imputation chart ✅ Phase 2
+- Feature correlation heatmap ✅ Phase 3
+- Class distribution before/after SMOTE ✅ Phase 3
 
 ### Data Outputs
 
@@ -212,6 +213,16 @@ CDC BRFSS ASC + HTML Codebooks (2022, 2023, 2024)
 | `y_test.csv` | 3 | (250,516,) | 0.7 MB |
 | `y_train_smote.csv` | 3 | (1,714,844,) | 4.9 MB |
 | `models/scaler.pkl` | 3 | — | < 1 KB |
+| `models/saved_models/lr_balanced.pkl` | 4 | — | ~1.3 KB |
+| `models/saved_models/lr_smote.pkl` | 4 | — | ~1.3 KB |
+| `models/saved_models/rf_balanced.pkl` | 4 | — | ~2.1 GB |
+| `models/saved_models/rf_smote.pkl` | 4 | — | ~3.0 GB |
+| `models/saved_models/xgb_balanced.pkl` | 4 | — | ~468 KB |
+| `models/saved_models/xgb_smote.pkl` | 4 | — | ~432 KB |
+
+> **Note**: RF `.pkl` files (2–3 GB) are excluded from Git via `.gitignore`.
+> XGBoost and LR models are small enough to track but are also excluded
+> to keep the repository lightweight. Reproduce via `04_modeling.ipynb`.
 
 ---
 
@@ -237,10 +248,10 @@ CDC BRFSS ASC + HTML Codebooks (2022, 2023, 2024)
 ## 11. Success Criteria
 
 - Clean, reproducible pipeline from raw CDC ASC files to trained models
-- Clear comparison of at least 3 models with ROC-AUC as primary metric
-- Interpretable results via SHAP values with actionable insights
-- Proper handling of class imbalance and real-world data quality issues
-- All decisions documented in `ProjectDriven.md`
+- Clear comparison of at least 3 models with ROC-AUC as primary metric ✅
+- Interpretable results via SHAP values with actionable insights ⏳ Phase 5
+- Proper handling of class imbalance and real-world data quality issues ✅
+- All decisions documented in `ProjectDriven.md` ✅
 
 ---
 
@@ -250,11 +261,12 @@ CDC BRFSS ASC + HTML Codebooks (2022, 2023, 2024)
 |------|--------|-----------|
 | No clinical biomarkers (glucose, HbA1c) | Accepted | Positioned as population-level behavioural screening tool |
 | Self-report bias | Accepted | Documented as limitation |
-| Class imbalance (14.4% positive) | ✅ Phase 3 | SMOTE + `class_weight='balanced'` |
+| Class imbalance (14.4% positive) | ✅ Phase 3/4 | SMOTE + `scale_pos_weight` — balanced strategy outperformed SMOTE |
 | `PHYSHLTH` / `POORHLTH` multicollinearity (r=0.70) | ✅ Phase 3 | Dropped `POORHLTH` (VIF tie → Phase 1 rank) |
 | `_RACE` dropped — limited fairness analysis | Accepted | Documented in limitations |
 | Large file (82 MB cleaned) | Managed | Full data used throughout |
 | `YEAR` feature — temporal leakage risk | ✅ Phase 3 | Dropped — prevalence shift <1pp |
+| RF model files too large for Git (2–3 GB) | ✅ Phase 4 | Excluded via `.gitignore`; reproducible via notebook |
 | US population only | Accepted | Documented as limitation |
 
 ---
@@ -287,25 +299,73 @@ diabetes-risk-prediction/
 │   └── findings.md               # To be completed in Phase 5
 │
 ├── models/
-│   ├── scaler.pkl                # Fitted StandardScaler (Phase 3)
-│   └── saved_models/             # Trained models (Phase 4)
+│   ├── scaler.pkl                # Fitted StandardScaler (Phase 3) — tracked by Git
+│   └── saved_models/             # Trained models (Phase 4) — excluded from Git
+│       ├── lr_balanced.pkl
+│       ├── lr_smote.pkl
+│       ├── rf_balanced.pkl       # ~2.1 GB — not tracked
+│       ├── rf_smote.pkl          # ~3.0 GB — not tracked
+│       ├── xgb_balanced.pkl      # ~468 KB — not tracked (reproducible)
+│       └── xgb_smote.pkl         # ~432 KB — not tracked (reproducible)
 │
 ├── notebooks/
 │   ├── 00_data_collection.ipynb      ✅ Done
 │   ├── 01_data_understanding.ipynb   ✅ Done
 │   ├── 02_cleaning.ipynb             ✅ Done
 │   ├── 03_feature_engineering.ipynb  ✅ Done
-│   ├── 04_modeling.ipynb             ⏳ Pending
+│   ├── 04_modeling.ipynb             ✅ Done
 │   └── 05_evaluation.ipynb           ⏳ Pending
 │
 └── outputs/
-    ├── figures/                  # 13 figures (Phases 1–3)
+    ├── figures/                  # 16 figures (Phases 1–4)
     └── reports/
 ```
 
 ---
 
 ## 14. Phase-by-Phase Decision Log
+
+### Phase 4 Decisions
+
+#### Model Results Summary
+
+| Model | Accuracy | Precision | Recall | F1 | ROC-AUC |
+|-------|----------|-----------|--------|----|---------|
+| **XGB-Balanced** | 0.6985 | 0.6246 | **0.7395** | 0.6138 | **0.8148** |
+| LR-Balanced | 0.7171 | 0.6247 | 0.7313 | 0.6227 | 0.8040 |
+| LR-SMOTE | 0.7054 | 0.6206 | 0.7273 | 0.6140 | 0.7989 |
+| XGB-SMOTE | 0.7536 | 0.6198 | 0.6952 | 0.6309 | 0.7870 |
+| RF-SMOTE | 0.7579 | 0.6009 | 0.6495 | 0.6111 | 0.7370 |
+| RF-Balanced | 0.7790 | 0.5942 | 0.6169 | 0.6021 | 0.7260 |
+
+#### Winner: XGB-Balanced
+
+- ROC-AUC: **0.8148** (highest across all 6 variants)
+- Recall (macro): 0.7395 | Sensitivity (class 1): **0.7971**
+- Specificity (class 0): 0.6819
+- Raw counts: TP=28,824 | FN=7,337 | FP=68,196 | TN=146,159
+- `scale_pos_weight = 857,422 / 144,642 = 5.9294`
+
+#### Imbalance Strategy Finding
+
+`class_weight='balanced'` / `scale_pos_weight` **outperformed SMOTE** across all three
+algorithm families. SMOTE improved Recall slightly but reduced ROC-AUC, suggesting
+synthetic minority samples do not generalise as well as loss-function reweighting on real data.
+
+#### Random Forest Performance
+
+RF underperformed both LR and XGBoost on ROC-AUC (0.726–0.737 vs 0.799–0.815).
+With unlimited `max_depth` and 14 ordinal/binary features, the 100-tree forest
+likely memorised the training data rather than learning generalisable patterns.
+RF model files are also extremely large (2.1–3.0 GB) vs XGBoost (~450 KB).
+
+#### Phase 5 Input
+
+- Model: `xgb_balanced.pkl`
+- Features: 14 (all columns of `X_train`)
+- Scaler: `models/scaler.pkl` (required for any new inference)
+
+---
 
 ### Phase 3 Decisions
 
@@ -385,21 +445,19 @@ Applying row-drop to these variables would have removed ~390k rows (30%) — una
 
 ---
 
-## 15. Inputs for Phase 4
+## 15. Inputs for Phase 5
 
 | File | Use |
 |------|-----|
-| `X_train.csv` + `y_train.csv` | Models with `class_weight='balanced'` |
-| `X_train_smote.csv` + `y_train_smote.csv` | Models trained on SMOTE-balanced data |
-| `X_test.csv` + `y_test.csv` | Evaluation for all models (never resampled) |
-| `models/scaler.pkl` | Apply same scaling to any new inference data |
+| `models/saved_models/xgb_balanced.pkl` | SHAP analysis — best performing model |
+| `X_train.csv` + `X_test.csv` | SHAP background dataset and test samples |
+| `y_test.csv` | Ground truth for evaluation plots |
+| `models/scaler.pkl` | Required if running inference on new data |
 
-### Models to Train
+### Phase 5 Planned Outputs
 
-1. Logistic Regression — interpretable baseline; both imbalance strategies
-2. Random Forest — ensemble; built-in feature importance; both strategies
-3. XGBoost — gradient boosting; expected best performance on tabular data
-
-### Primary Metric
-
-ROC-AUC — robust to class imbalance; captures discrimination across all thresholds
+- SHAP beeswarm plot (global feature importance)
+- SHAP waterfall plot (individual prediction explanation)
+- SHAP bar chart (mean absolute SHAP values)
+- Final model comparison narrative
+- `docs/methodology.md` and `docs/findings.md`

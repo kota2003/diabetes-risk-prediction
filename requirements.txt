@@ -1,6 +1,6 @@
 # ──────────────────────────────────────────────
 # requirements.txt
-# Updated: Phase 3 — Feature Engineering
+# Updated: Phase 4 — Modeling
 # Environment: diabetes-ml (conda)
 # Python: 3.11
 # ──────────────────────────────────────────────
@@ -26,10 +26,10 @@ scikit-learn==1.4.2    # StandardScaler, train_test_split, metrics
 imbalanced-learn==0.14.1  # SMOTE oversampling
 statsmodels>=0.14.0    # Variance Inflation Factor (VIF)
 scipy>=1.11.0          # Chi-square test (chi2_contingency)
-joblib>=1.3.0          # Scaler serialisation (save/load scaler.pkl)
+joblib>=1.3.0          # Scaler and model serialisation (save/load .pkl)
 
-# ── Phase 4: Modeling (planned) ───────────────
-xgboost>=2.0.0         # Gradient boosting model
+# ── Phase 4: Modeling ─────────────────────────
+xgboost>=2.0.0         # Gradient boosting model (XGBClassifier)
 
 # ── Phase 5: Evaluation & Interpretation (planned) ──
 shap>=0.44.0           # SHAP values for model interpretability

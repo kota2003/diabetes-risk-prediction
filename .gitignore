@@ -1,56 +1,68 @@
-# ─────────────────────────────
-# Data
-# ─────────────────────────────
-data/source/
-data/raw/
-data/processed/
+# ══════════════════════════════════════════════════════════════
+# .gitignore — diabetes-risk-prediction
+# ══════════════════════════════════════════════════════════════
 
-# ─────────────────────────────
-# Trained models
-# ─────────────────────────────
-models/saved_models/
-
-# ─────────────────────────────
-# Python
-# ─────────────────────────────
+# ── Python ────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 .Python
+*.egg
 *.egg-info/
 dist/
 build/
-*.egg
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
 
-# ─────────────────────────────
-# Virtual environments
-# ─────────────────────────────
-.venv/
-venv/
+# ── Jupyter ───────────────────────────────────────────────────
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# ── Virtual environments ──────────────────────────────────────
+.env
+.venv
 env/
+venv/
 ENV/
 
-# ─────────────────────────────
-# Jupyter
-# ─────────────────────────────
-.ipynb_checkpoints/
-*.ipynb_checkpoints
-
-# ─────────────────────────────
-# OS
-# ─────────────────────────────
+# ── OS ────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# ─────────────────────────────
-# IDE
-# ─────────────────────────────
+# ── IDEs ──────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
+*.swo
 
-# ─────────────────────────────
-# Environment variables
-# ─────────────────────────────
-.env
+# ══════════════════════════════════════════════════════════════
+# Project-specific exclusions
+# ══════════════════════════════════════════════════════════════
+
+# ── Raw data (CDC ASC source files — too large for Git) ───────
+data/source/
+data/raw/
+
+# ── Processed data (reproducible from notebooks 00–03) ────────
+data/processed/
+
+# ── Trained models (reproducible from 04_modeling.ipynb) ──────
+# RF models are 2–3 GB; XGB/LR are small but excluded for consistency.
+# scaler.pkl is tracked (< 1 KB, required for inference).
+models/saved_models/
+
+# ── Outputs — figures are committed; reports excluded until Phase 5 ──
+outputs/reports/
+
+# ── Temporary / scratch files ─────────────────────────────────
+*.tmp
+*.log
+*.bak

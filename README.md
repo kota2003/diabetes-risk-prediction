@@ -37,19 +37,19 @@ diabetes-risk-prediction/
 │   └── findings.md               # To be completed in Phase 5
 │
 ├── models/
-│   ├── scaler.pkl                # Fitted StandardScaler (Phase 3)
-│   └── saved_models/             # Trained models (Phase 4)
+│   ├── scaler.pkl                # Fitted StandardScaler (Phase 3) — tracked by Git
+│   └── saved_models/             # Trained models (Phase 4) — excluded from Git
 │
 ├── notebooks/
 │   ├── 00_data_collection.ipynb      ✅ Done
 │   ├── 01_data_understanding.ipynb   ✅ Done
 │   ├── 02_cleaning.ipynb             ✅ Done
 │   ├── 03_feature_engineering.ipynb  ✅ Done
-│   ├── 04_modeling.ipynb             ⏳ Pending
+│   ├── 04_modeling.ipynb             ✅ Done
 │   └── 05_evaluation.ipynb           ⏳ Pending
 │
 └── outputs/
-    ├── figures/                  # 13 figures generated (Phases 1–3)
+    ├── figures/                  # 16 figures generated (Phases 1–4)
     └── reports/
 ```
 
@@ -130,24 +130,45 @@ CDC BRFSS ASC + HTML Codebooks (2022, 2023, 2024)
 ↓
 03_feature_engineering.ipynb →  data/processed/ (6 split files)          (14 features)     ✅
 ↓
-04_modeling.ipynb            →  models/saved_models/                                       ⏳
+04_modeling.ipynb            →  models/saved_models/ (6 models)          ROC-AUC 0.8148    ✅
 ↓
 05_evaluation.ipynb          →  outputs/reports/, outputs/figures/                         ⏳
 ```
 
 ---
 
-## 4. Planned Models
+## 4. Model Results (Phase 4)
 
-| Model | Rationale |
-|-------|-----------|
-| Logistic Regression | Interpretable baseline; coefficient-level feature importance |
-| Random Forest | Ensemble method; built-in feature importance; robust to scale |
-| XGBoost | Gradient boosting; expected best performance on large tabular data |
+Six model variants were trained across three algorithms and two class imbalance strategies,
+all evaluated on the same held-out test set (250,516 respondents, never resampled).
 
-Each model will be trained under two class imbalance strategies:
-- `class_weight='balanced'` — adjusts loss function, no resampling
-- SMOTE — synthetic minority oversampling on training set only
+| Model | Accuracy | Precision | Recall | F1 | ROC-AUC |
+|-------|----------|-----------|--------|----|---------|
+| **XGB-Balanced** ⭐ | 0.699 | 0.625 | **0.740** | 0.614 | **0.815** |
+| LR-Balanced | 0.717 | 0.625 | 0.731 | 0.623 | 0.804 |
+| LR-SMOTE | 0.705 | 0.621 | 0.727 | 0.614 | 0.799 |
+| XGB-SMOTE | 0.754 | 0.620 | 0.695 | 0.631 | 0.787 |
+| RF-SMOTE | 0.758 | 0.601 | 0.650 | 0.611 | 0.737 |
+| RF-Balanced | 0.779 | 0.594 | 0.617 | 0.602 | 0.726 |
+
+**Winner: XGB-Balanced** — highest ROC-AUC and Recall across all six variants.
+
+### Key Finding: Imbalance Strategy
+
+`scale_pos_weight` (loss-function reweighting on real data) consistently outperformed
+SMOTE (synthetic oversampling) across all three algorithm families. SMOTE marginally
+improves Recall but reduces ROC-AUC, suggesting synthetic minority samples do not
+generalise as well as reweighting the loss on real observations.
+
+### Best Model: XGB-Balanced — Confusion Matrix
+
+|  | Predicted: No Diabetes | Predicted: Diabetes |
+|--|----------------------|-------------------|
+| **Actual: No Diabetes** | 146,159 (TN) | 68,196 (FP) |
+| **Actual: Diabetes** | 7,337 (FN) | 28,824 (TP) |
+
+- **Sensitivity** (Recall, class 1): **0.797** — 4 in 5 diabetic respondents correctly flagged
+- **Specificity** (Recall, class 0): 0.682
 
 ---
 
@@ -161,7 +182,7 @@ Each model will be trained under two class imbalance strategies:
 | F1-score | Secondary |
 | Confusion Matrix | Per model |
 
-Model interpretability via **SHAP values** (global + individual explanations).
+Model interpretability via **SHAP values** (global + individual explanations) — Phase 5.
 
 ---
 
@@ -175,7 +196,7 @@ Model interpretability via **SHAP values** (global + individual explanations).
 | Ordinal cast | `GENHLTH`, `_AGEG5YR`, `_BMI5CAT`, `INCOME3`, `CHECKUP1`, `EDUCA`, `_SMOKER3` — float64 → int |
 | Scaled | `PHYSHLTH`, `MENTHLTH` — StandardScaler, fit on train only |
 | Split | 80/20 stratified, random_state=42 |
-| Imbalance | SMOTE on train only → 857,422 per class (50/50); `class_weight='balanced'` as alternative |
+| Imbalance | SMOTE on train only → 857,422 per class (50/50); `scale_pos_weight` as model-level alternative |
 
 ---
 
@@ -185,6 +206,7 @@ Model interpretability via **SHAP values** (global + individual explanations).
 - Self-report bias inherent in survey data
 - `_RACE` dropped due to structural absence in 2022 — limited fairness analysis
 - US adult population only — generalisability outside the US is limited
+- Random Forest models (2–3 GB) are excluded from Git; reproduce via `04_modeling.ipynb`
 
 ---
 
@@ -220,7 +242,11 @@ See `requirements.txt` for pinned library versions.
 To reproduce from scratch:
 1. Download BRFSS ASCII files and HTML codebooks for 2022–2024 from https://www.cdc.gov/brfss/annual_data/annual_data.htm
 2. Place in `data/source/`
-3. Run notebooks 00 → 03 in sequence
+3. Run notebooks 00 → 04 in sequence
+
+> **Note on model files**: Trained models in `models/saved_models/` are excluded from Git
+> (Random Forest files are 2–3 GB). Re-run `04_modeling.ipynb` to regenerate all models.
+> `models/scaler.pkl` (< 1 KB) is tracked and included.
 
 ---
 
