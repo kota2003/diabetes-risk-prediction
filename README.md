@@ -1,50 +1,70 @@
-# Predicting Diabetes Risk Using Machine Learning
+# 🩺 Predicting Diabetes Risk Using Machine Learning
 
-An end-to-end machine learning pipeline for predicting diabetes risk from
-large-scale, nationally representative behavioural survey data.
+> End-to-end machine learning pipeline identifying individuals at high risk of diabetes
+> using nationally representative behavioural survey data — built for healthcare analysts,
+> data science practitioners, and ML engineers.
 
-**Data**: CDC BRFSS 2022–2024 &nbsp;|&nbsp;
-**Samples**: 1,252,580 &nbsp;|&nbsp;
-**Best model**: XGBoost ROC-AUC **0.815** &nbsp;|&nbsp;
-**Sensitivity**: **0.797**
-
----
-
-## Table of Contents
-
-1. [Project Overview](#1-project-overview)
-2. [Why BRFSS?](#2-why-brfss)
-3. [Pipeline](#3-pipeline)
-4. [Results](#4-results)
-5. [SHAP Interpretation](#5-shap-interpretation)
-6. [Feature Set](#6-feature-set)
-7. [Key Findings](#7-key-findings)
-8. [Limitations](#8-limitations)
-9. [Reproducibility](#9-reproducibility)
-10. [Tech Stack](#10-tech-stack)
-11. [Docs](#11-docs)
+![Python](https://img.shields.io/badge/Python-3.11-blue?logo=python&logoColor=white)
+![XGBoost](https://img.shields.io/badge/XGBoost-2.x-orange?logo=xgboost&logoColor=white)
+![Scikit-learn](https://img.shields.io/badge/Scikit--learn-1.4.2-f7931e?logo=scikit-learn&logoColor=white)
+![SHAP](https://img.shields.io/badge/SHAP-0.44+-8e44ad)
+![ROC--AUC](https://img.shields.io/badge/ROC--AUC-0.815-2e7d32)
+![Sensitivity](https://img.shields.io/badge/Sensitivity-0.797-1565c0)
+![Samples](https://img.shields.io/badge/Samples-1.25M-6a1b9a)
+![Years](https://img.shields.io/badge/Years-2022--2024-00838f)
 
 ---
 
-## 1. Project Overview
+## 📋 Table of Contents
+
+1. [Project Overview](#-project-overview)
+2. [Why BRFSS?](#-why-brfss)
+3. [Pipeline](#️-pipeline)
+4. [Results](#-results)
+5. [SHAP Interpretation](#-shap-interpretation)
+6. [Feature Set](#-feature-set)
+7. [Key Findings](#-key-findings)
+8. [Limitations](#️-limitations)
+9. [Reproducibility](#-reproducibility)
+10. [Tech Stack](#️-tech-stack)
+11. [Docs](#-docs)
+
+---
+
+## 📌 Project Overview
 
 Diabetes affects hundreds of millions of people worldwide. Early identification of
-high-risk individuals is critical for timely intervention. This project builds and
-compares six machine learning models — Logistic Regression, Random Forest, and XGBoost,
-each under two class-imbalance strategies — using survey-based behavioural and demographic
-features to predict diabetes diagnosis.
+high-risk individuals is critical for timely intervention and prevention. This project
+builds and compares **six machine learning models** — Logistic Regression, Random Forest,
+and XGBoost, each under two class-imbalance strategies — using survey-based behavioural
+and demographic features to predict diabetes diagnosis.
 
-**Goals:**
-- Demonstrate a production-quality ML pipeline on a real, messy, large-scale dataset
-- Compare model families and imbalance strategies systematically
-- Provide interpretable, clinically grounded explanations via SHAP values
-- Document every decision with rationale (see [`ProjectDriven.md`](ProjectDriven.md))
+> **Goal:** Demonstrate a production-quality end-to-end ML pipeline on a real, messy,
+> large-scale dataset — with interpretable, clinically grounded explanations via SHAP.
+
+### Target Users
+- 🏥 **Healthcare analysts** — population-level risk identification
+- 📊 **Data science recruiters** — end-to-end pipeline with documented decision rationale
+- ⚙️ **ML engineers** — reproducible pipeline with class imbalance strategy comparison
+
+### Dataset at a Glance
+
+| | |
+|---|---|
+| **Source** | CDC Behavioral Risk Factor Surveillance System (BRFSS) |
+| **Years** | 2022, 2023, 2024 |
+| **Raw samples** | 1,336,125 |
+| **Cleaned samples** | 1,252,580 |
+| **Features** | 14 (behavioural + demographic) |
+| **Target** | `DIABETES` — binary (1 = Diabetes, 0 = No Diabetes) |
+| **Class split** | 14.4% positive / 85.6% negative |
+| **Best model ROC-AUC** | **0.815** |
 
 ---
 
-## 2. Why BRFSS?
+## 🌏 Why BRFSS?
 
-Most public diabetes ML projects use the Pima Indians dataset (UCI, 768 rows, 1990s data).
+Most public diabetes ML projects use the Pima Indians dataset (UCI, 768 rows, 1990s).
 This project deliberately uses a harder, richer alternative:
 
 | | Pima Indians (UCI) | CDC BRFSS (this project) |
@@ -57,12 +77,12 @@ This project deliberately uses a harder, richer alternative:
 | Generalisability | Very low | High |
 
 Using BRFSS introduces real data engineering challenges: fixed-width ASCII parsing,
-HTML codebook parsing, BRFSS-specific special codes, multi-year variable alignment,
-and structural missingness that varies by survey year.
+automated HTML codebook parsing, BRFSS-specific special codes (88 = "none", 7/9/77/99 = refused),
+multi-year variable alignment, and structural missingness that varies by survey year.
 
 ---
 
-## 3. Pipeline
+## ⚙️ Pipeline
 
 ```
 CDC BRFSS ASCII files + HTML codebooks (2022, 2023, 2024)
@@ -80,7 +100,7 @@ CDC BRFSS ASCII files + HTML codebooks (2022, 2023, 2024)
 │       VIF analysis, binary recoding, scaling, 80/20 split, SMOTE → 14 features, 6 data files
 │
 ├── 04_modeling.ipynb
-│       6 model variants (LR / RF / XGB × Balanced / SMOTE) → XGB-Balanced ROC-AUC 0.8148
+│       6 model variants (LR / RF / XGB × Balanced / SMOTE) → XGB-Balanced ROC-AUC 0.815
 │
 └── 05_evaluation.ipynb
         SHAP global + individual explanations → 5 figures + methodology.md + findings.md
@@ -91,10 +111,10 @@ logged with rationale in [`ProjectDriven.md`](ProjectDriven.md).
 
 ---
 
-## 4. Results
+## 🤖 Results
 
 Six model variants were trained and evaluated on the same held-out test set
-(250,516 respondents, 14.4% positive — never resampled).
+(250,516 respondents, 14.4% positive — **never resampled**).
 Primary metric: **ROC-AUC** (robust to class imbalance).
 
 | Model | Accuracy | Precision | Recall | F1 | ROC-AUC |
@@ -118,62 +138,82 @@ Primary metric: **ROC-AUC** (robust to class imbalance).
 
 ### Imbalance Strategy: Balanced vs SMOTE
 
-`scale_pos_weight` (loss-function reweighting) outperformed SMOTE across all three
-algorithm families on ROC-AUC. Synthetic oversampling marginally improved Recall
-but hurt discrimination — suggesting synthetic minority samples do not generalise
-as well as reweighting the loss on real data at 1.25M scale.
+![Model Comparison](https://raw.githubusercontent.com/kota2003/diabetes-risk-prediction/main/outputs/figures/04_model_comparison.png)
+
+`scale_pos_weight` (loss-function reweighting) **outperformed SMOTE** across all three
+algorithm families on ROC-AUC. At 1.25M scale, synthetic minority samples do not add
+generalisable signal beyond what reweighting achieves on real data.
 
 ---
 
-## 5. SHAP Interpretation
+## 🔍 SHAP Interpretation
 
-[SHAP (SHapley Additive exPlanations)](https://shap.readthedocs.io/) was used to
-explain the XGB-Balanced model. `shap.TreeExplainer` computes exact Shapley values
-by exploiting XGBoost's tree structure — no approximations required.
+[SHAP (SHapley Additive exPlanations)](https://shap.readthedocs.io/) was used to explain
+the XGB-Balanced model. `shap.TreeExplainer` computes **exact** Shapley values by exploiting
+XGBoost's tree structure — no approximations required.
 
-**Global importance** (mean |SHAP| across 5,000 test samples):
+**Explanation set:** 5,000 randomly sampled held-out test respondents (`random_state=42`).
 
-![SHAP Bar Chart](outputs/figures/05_shap_bar.png)
+### Global Feature Importance — Mean |SHAP Value|
 
-**Direction and spread** (beeswarm — each dot is one respondent, colour = feature value):
+![SHAP Bar Chart](https://raw.githubusercontent.com/kota2003/diabetes-risk-prediction/main/outputs/figures/05_shap_bar.png)
 
-![SHAP Beeswarm](outputs/figures/05_shap_beeswarm.png)
+*Age and self-rated health dominate. The top 4 features account for the majority of
+predictive signal — and are identical across both SHAP and XGBoost built-in rankings.*
 
-**Individual explanations** — how the model arrived at two specific predictions:
+### Direction & Spread — Beeswarm Plot
+
+![SHAP Beeswarm](https://raw.githubusercontent.com/kota2003/diabetes-risk-prediction/main/outputs/figures/05_shap_beeswarm.png)
+
+*Each dot is one respondent. Colour = feature value (red = high, blue = low).
+Older age (high `_AGEG5YR`, red) and poor health (high `GENHLTH`, red) push strongly
+right — toward the positive (diabetes) class.*
+
+### Individual Predictions — Waterfall Plots
 
 | True Positive (p = 0.944) | True Negative (p = 0.0003) |
 |:---:|:---:|
-| ![Waterfall TP](outputs/figures/05_shap_waterfall_tp.png) | ![Waterfall TN](outputs/figures/05_shap_waterfall_tn.png) |
+| ![Waterfall TP](https://raw.githubusercontent.com/kota2003/diabetes-risk-prediction/main/outputs/figures/05_shap_waterfall_tp.png) | ![Waterfall TN](https://raw.githubusercontent.com/kota2003/diabetes-risk-prediction/main/outputs/figures/05_shap_waterfall_tn.png) |
 
-The True Positive profile: GENHLTH=5 (poor), age group 10 (older adult), heart attack
-history, obese BMI, stroke history — every major risk factor stacked.
-The True Negative profile: age group 1 (youngest), underweight BMI, good health,
-recent checkup — the model pushes strongly negative with high confidence.
+**True Positive profile:** GENHLTH=5 (poor health), age group 10 (older adult), heart attack
+history, obese BMI, stroke history — every major risk factor stacked simultaneously.
+
+**True Negative profile:** Age group 1 (youngest), underweight BMI, good health, recent
+checkup — the model pushes strongly negative with near-certainty.
+
+### Built-in Gain vs SHAP Comparison
+
+![Importance Comparison](https://raw.githubusercontent.com/kota2003/diabetes-risk-prediction/main/outputs/figures/05_importance_comparison.png)
+
+*Top-4 features are **identical** across both methods — robust signal.
+`CVDINFR4` (heart attack history) is inflated by XGBoost gain (rank 5) vs SHAP (rank 10),
+because gain measures split frequency, not prediction impact.*
 
 ---
 
-## 6. Feature Set
+## 📊 Feature Set
 
-14 features retained after Phase 3 feature engineering:
+14 features retained after Phase 3 feature engineering (SHAP-ranked):
 
-| Variable | Type | Description | SHAP Rank |
-|----------|------|-------------|:---------:|
-| `_AGEG5YR` | Ordinal (1–14) | Age group in 5-year intervals | **#1** |
-| `GENHLTH` | Ordinal (1–5) | Self-rated general health (1=Excellent, 5=Poor) | **#2** |
-| `CHECKUP1` | Ordinal (1–4) | Time since last routine checkup | **#3** |
-| `_BMI5CAT` | Ordinal (1–4) | BMI category (1=Underweight, 4=Obese) | **#4** |
-| `_SEX` | Binary (0/1) | Sex (1=Male, 0=Female) | #5 |
-| `DIFFWALK` | Binary (0/1) | Difficulty walking or climbing stairs | #6 |
-| `EXERANY2` | Binary (0/1) | Physical activity in past 30 days | #7 |
-| `EDUCA` | Ordinal (1–6) | Highest education level | #8 |
-| `INCOME3` | Ordinal (1–11) | Annual household income bracket | #9 |
-| `CVDINFR4` | Binary (0/1) | Heart attack history | #10 |
-| `MENTHLTH` | Continuous (scaled) | Days mental health not good (0–30) | #11 |
-| `_SMOKER3` | Ordinal (1–4) | Smoking status (1=Current daily, 4=Never) | #12 |
-| `PHYSHLTH` | Continuous (scaled) | Days physical health not good (0–30) | #13 |
-| `CVDSTRK3` | Binary (0/1) | Stroke history | #14 |
+| SHAP Rank | Variable | Type | Description |
+|:---------:|----------|------|-------------|
+| **#1** | `_AGEG5YR` | Ordinal (1–14) | Age group in 5-year intervals |
+| **#2** | `GENHLTH` | Ordinal (1–5) | Self-rated general health (1=Excellent, 5=Poor) |
+| **#3** | `CHECKUP1` | Ordinal (1–4) | Time since last routine checkup |
+| **#4** | `_BMI5CAT` | Ordinal (1–4) | BMI category (1=Underweight, 4=Obese) |
+| #5 | `_SEX` | Binary (0/1) | Sex (1=Male, 0=Female) |
+| #6 | `DIFFWALK` | Binary (0/1) | Difficulty walking or climbing stairs |
+| #7 | `EXERANY2` | Binary (0/1) | Physical activity in past 30 days |
+| #8 | `EDUCA` | Ordinal (1–6) | Highest education level |
+| #9 | `INCOME3` | Ordinal (1–11) | Annual household income bracket |
+| #10 | `CVDINFR4` | Binary (0/1) | Heart attack history |
+| #11 | `MENTHLTH` | Continuous (scaled) | Days mental health not good (0–30) |
+| #12 | `_SMOKER3` | Ordinal (1–4) | Smoking status (1=Current daily, 4=Never) |
+| #13 | `PHYSHLTH` | Continuous (scaled) | Days physical health not good (0–30) |
+| #14 | `CVDSTRK3` | Binary (0/1) | Stroke history |
 
-**Variables dropped** (with rationale):
+<details>
+<summary>📋 Variables dropped (click to expand)</summary>
 
 | Variable | Phase | Reason |
 |----------|-------|--------|
@@ -185,88 +225,106 @@ recent checkup — the model pushes strongly negative with high confidence.
 | `POORHLTH` | Phase 3 | Multicollinearity with `PHYSHLTH` (r=0.70); lower Phase 1 rank |
 | `YEAR` | Phase 3 | Temporal leakage risk; prevalence shift <1pp across years |
 
+</details>
+
 ---
 
-## 7. Key Findings
+## 💡 Key Findings
 
-**1. Age is the dominant predictor.**
-`_AGEG5YR` has the highest mean |SHAP| value (0.709) — more than 25% higher than the
-second-ranked feature. Older age groups push predictions strongly toward the positive class.
+### Finding 1 — Age Is the Dominant Predictor
+**Mean |SHAP| = 0.709** — 29% higher than the second-ranked feature.
 
-**2. Self-rated health is a powerful proxy.**
-`GENHLTH` ranks second (mean |SHAP| = 0.550). Poor self-rated health captures a broad
-burden of undiagnosed or poorly managed chronic conditions, including undetected diabetes.
+Older age groups push predictions strongly toward the positive class. `_AGEG5YR` alone
+accounts for more predictive signal than any other variable by a clear margin.
 
-**3. `CHECKUP1` shows a counterintuitive negative association.**
+---
+
+### Finding 2 — Self-Rated Health Captures Broad Chronic Disease Burden
+**Mean |SHAP| = 0.550**
+
+`GENHLTH` ranks 2nd. Poor self-rated health is a powerful proxy for undiagnosed or poorly
+managed chronic conditions — including diabetes that has not yet been formally diagnosed.
+
+---
+
+### Finding 3 — `CHECKUP1` Shows a Counterintuitive Negative Association
+**Mean |SHAP| = 0.422 — direction is negative**
+
 Longer time since last routine checkup is associated with *lower* predicted diabetes risk.
-This is not a causal finding — it likely reflects survivorship bias (healthier individuals
-see doctors less) or healthcare access confounding (uninsured individuals are both less
-likely to attend checkups and less likely to have a diabetes diagnosis on record).
-
-**4. Loss-function reweighting outperforms SMOTE at scale.**
-Across all three algorithm families, `scale_pos_weight` / `class_weight='balanced'`
-produced higher ROC-AUC than SMOTE. At 1.25M rows, synthetic minority samples do not
-add generalisable signal beyond what reweighting achieves on real data.
-
-**5. Built-in gain importance inflates `CVDINFR4`.**
-XGBoost ranks `CVDINFR4` (heart attack history) 5th by gain, but SHAP ranks it 10th.
-Gain-based importance reflects how often a feature is used for splits, not how much
-it moves individual predictions. SHAP provides a more honest view of prediction impact.
+This is **not** a causal finding — it likely reflects survivorship bias (healthier individuals
+attend checkups less) or healthcare access confounding (uninsured individuals are both less
+likely to attend checkups *and* less likely to have a diabetes diagnosis on record).
 
 ---
 
-## 8. Limitations
-
-1. **No clinical biomarkers** — No blood glucose, HbA1c, or insulin data.
-   The model uses behavioural and demographic proxies only. Clinical sensitivity
-   is lower than a biomarker-based tool.
-
-2. **Self-report bias** — All features come from telephone survey responses.
-   Underreporting of unhealthy behaviours and undiagnosed diabetes (coded 0) are
-   unmeasurable sources of noise.
-
-3. **No racial/ethnic fairness analysis** — `_RACE` was dropped because it is
-   structurally absent in 2022 BRFSS data. Model performance across racial and
-   ethnic subgroups cannot be assessed.
-
-4. **US adult population only** — BRFSS surveys US adults exclusively.
-   Generalisation to other countries or healthcare systems is not supported.
-
-5. **Temporal scope** — Data covers 2022–2024 only. Pre-pandemic patterns
-   and future trends are not captured.
+### Finding 4 — Loss-Function Reweighting Outperforms SMOTE at Scale
+`scale_pos_weight` / `class_weight='balanced'` outperformed SMOTE on ROC-AUC across
+**all three algorithm families**. At 1.25M rows, synthetic minority oversampling does
+not add generalisable signal beyond what reweighting achieves on real data.
 
 ---
 
-## 9. Reproducibility
+### Finding 5 — Built-in Gain Inflates `CVDINFR4`
+XGBoost ranks heart attack history 5th by gain but SHAP ranks it 10th. Gain measures
+split frequency — not prediction impact. The top-4 are identical across both methods,
+confirming robust signal at the top of the ranking.
 
-All notebooks run in sequence (00 → 05). Random seeds are fixed (`random_state=42`).
+---
 
-**Environment setup:**
+## ⚠️ Limitations
+
+| Limitation | Impact |
+|---|---|
+| No clinical biomarkers (glucose, HbA1c) | Model uses behavioural/demographic proxies only; lower sensitivity than a biomarker-based tool |
+| Self-report bias | Underreporting of unhealthy behaviours and undiagnosed diabetes (coded 0) are unmeasurable |
+| `_RACE` excluded | Structurally absent in 2022 BRFSS; fairness analysis across racial/ethnic groups is not possible |
+| US adult population only | Generalisation to other countries or healthcare systems is not supported |
+| Temporal scope 2022–2024 | Pre-pandemic patterns and future trends are not captured |
+| `CHECKUP1` confounding | Negative association is a data artefact — not a causal protective effect |
+
+> ✅ **Intended use:** Population-level behavioural screening tool to flag high-risk individuals
+> for follow-up clinical assessment — **not a diagnostic replacement.**
+
+---
+
+## 🚀 Reproducibility
+
+### Environment Setup
 
 ```bash
+# Clone the repository
+git clone https://github.com/kota2003/diabetes-risk-prediction.git
+cd diabetes-risk-prediction
+
+# Create conda environment
 conda create -n diabetes-ml python=3.11
 conda activate diabetes-ml
+
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-**Data setup:**
+### Data Setup
 
-1. Download BRFSS ASCII files and HTML codebooks for 2022, 2023, 2024 from
-   https://www.cdc.gov/brfss/annual_data/annual_data.htm
+1. Download BRFSS ASCII files (`.ASC`) and HTML codebooks for 2022, 2023, 2024 from
+   [CDC BRFSS Annual Survey Data](https://www.cdc.gov/brfss/annual_data/annual_data.htm)
 2. Place all files in `data/source/`
 3. Run notebooks `00` → `05` in sequence
 
-> **Note on model files:** Trained models in `models/saved_models/` are excluded
-> from Git. Random Forest files are 2–3 GB; XGBoost files are ~450 KB.
+> **Note on model files:** Trained models in `models/saved_models/` are excluded from Git.
+> Random Forest files are 2–3 GB; XGBoost files are ~450 KB.
 > All models are fully reproducible by running `04_modeling.ipynb`.
 > `models/scaler.pkl` (< 1 KB) is tracked and included.
 
+All random seeds are fixed at `random_state=42`. Every decision is documented in
+[`ProjectDriven.md`](ProjectDriven.md).
+
 ---
 
-## 10. Tech Stack
+## 🛠️ Tech Stack
 
 | Library | Version | Purpose |
-|---------|---------|---------|
+|---------|:-------:|---------|
 | Python | 3.11 | Core language |
 | pandas | ≥ 2.0 | Data loading and manipulation |
 | numpy | ≥ 1.26 | Numerical operations |
@@ -282,7 +340,7 @@ pip install -r requirements.txt
 
 ---
 
-## 11. Docs
+## 📄 Docs
 
 | Document | Description |
 |----------|-------------|
@@ -293,7 +351,43 @@ pip install -r requirements.txt
 
 ---
 
-## License
+## 📁 Repository Structure
 
-This project is for educational and portfolio purposes only.
-CDC BRFSS data is publicly available under open data policy.
+```
+diabetes-risk-prediction/
+│
+├── README.md
+├── requirements.txt
+├── ProjectDriven.md              # Living project log
+├── .gitignore
+│
+├── data/
+│   ├── source/                   # CDC ASC + HTML codebooks (not tracked by Git)
+│   ├── raw/                      # Extracted year CSVs (not tracked by Git)
+│   └── processed/                # Cleaned and split data (not tracked by Git)
+│
+├── docs/
+│   ├── p2_ProjectScope.md
+│   ├── methodology.md            ✅ Complete
+│   └── findings.md               ✅ Complete
+│
+├── models/
+│   ├── scaler.pkl                # Fitted StandardScaler — tracked by Git
+│   └── saved_models/             # Trained models — excluded from Git (reproducible)
+│
+├── notebooks/
+│   ├── 00_data_collection.ipynb      ✅
+│   ├── 01_data_understanding.ipynb   ✅
+│   ├── 02_cleaning.ipynb             ✅
+│   ├── 03_feature_engineering.ipynb  ✅
+│   ├── 04_modeling.ipynb             ✅
+│   └── 05_evaluation.ipynb           ✅
+│
+└── outputs/
+    └── figures/                  # 21 figures (Phases 1–5)
+```
+
+---
+
+*Data: CDC BRFSS 2022–2024 · Python 3.11 · 2024–2025*  
+*Figures saved to `outputs/figures/` · Full methodology in `docs/methodology.md`*
