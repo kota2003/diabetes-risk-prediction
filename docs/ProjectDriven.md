@@ -3,7 +3,7 @@
 
 > **Version note:** This document was originally drafted for the Pima Indians dataset (UCI).
 > In Phase 0, the project pivoted to CDC BRFSS for superior scale, recency, and demographic diversity.
-> All sections reflect the actual project state as of Phase 4 completion.
+> All sections reflect the actual project state as of Phase 5 completion.
 
 ---
 
@@ -16,7 +16,7 @@
 | Phase 2 — Data Cleaning | ✅ Complete | `brfss_cleaned.csv` (1,252,580 × 17) |
 | Phase 3 — Feature Engineering | ✅ Complete | 6 split files + `scaler.pkl` (14 features) |
 | Phase 4 — Modeling | ✅ Complete | 6 trained models + 3 figures |
-| Phase 5 — Evaluation | ⏳ Pending | — |
+| Phase 5 — Evaluation & Interpretation | ✅ Complete | 5 SHAP figures + `methodology.md` + `findings.md` |
 
 ---
 
@@ -157,10 +157,12 @@ This project aims to:
 - Best model: **XGB-Balanced** — ROC-AUC 0.8148, Recall 0.74, Sensitivity 0.80
 - All 6 models saved to `models/saved_models/`
 
-### Phase 5 — Evaluation & Interpretation ⏳
-- SHAP values for global and individual explanations (using XGB-Balanced)
-- Feature importance ranking and beeswarm plot
-- Model comparison discussion and limitations
+### Phase 5 — Evaluation & Interpretation ✅
+- SHAP TreeExplainer on XGB-Balanced (background: 5,000 X_train rows; explanation: 5,000 X_test rows)
+- Global importance: `_AGEG5YR` and `GENHLTH` dominate; `CHECKUP1` ranks 3rd with counterintuitive direction
+- Individual explanations: waterfall plots for most confident TP (p=0.944) and TN (p=0.0003)
+- Built-in gain vs SHAP comparison: top-4 features identical across both methods; `CVDINFR4` inflated by gain
+- Outputs: 5 figures, `docs/methodology.md`, `docs/findings.md`
 
 ---
 
@@ -179,7 +181,8 @@ CDC BRFSS ASC + HTML Codebooks (2022, 2023, 2024)
 ↓
 04_modeling.ipynb            →  models/saved_models/ (6 models)          ROC-AUC 0.8148    ✅
 ↓
-05_evaluation.ipynb          →  outputs/reports/, outputs/figures/                         ⏳
+05_evaluation.ipynb          →  outputs/figures/ (5 SHAP figures)                          ✅
+                             →  docs/methodology.md + docs/findings.md
 ```
 
 ---
@@ -188,74 +191,52 @@ CDC BRFSS ASC + HTML Codebooks (2022, 2023, 2024)
 
 ### Analytical Outputs
 - Model performance comparison table (Accuracy, Precision, Recall, F1, ROC-AUC) ✅ Phase 4
-- Feature importance ranking (all three models) ⏳ Phase 5
-- SHAP summary and waterfall plots ⏳ Phase 5
+- Feature importance ranking — SHAP + XGBoost gain comparison ✅ Phase 5
+- SHAP beeswarm and waterfall plots ✅ Phase 5
+- `docs/methodology.md` ✅ Phase 5
+- `docs/findings.md` ✅ Phase 5
 
 ### Visual Outputs
 - ROC curves (all models overlaid) ✅ Phase 4 — `04_roc_curves.png`
 - Confusion matrices (per model, normalised) ✅ Phase 4 — `04_confusion_matrices.png`
 - Model comparison bar chart (Recall & ROC-AUC) ✅ Phase 4 — `04_model_comparison.png`
-- SHAP beeswarm / bar plots ⏳ Phase 5
+- SHAP global importance bar chart ✅ Phase 5 — `05_shap_bar.png`
+- SHAP beeswarm plot ✅ Phase 5 — `05_shap_beeswarm.png`
+- SHAP waterfall — True Positive ✅ Phase 5 — `05_shap_waterfall_tp.png`
+- SHAP waterfall — True Negative ✅ Phase 5 — `05_shap_waterfall_tn.png`
+- SHAP vs XGBoost gain comparison ✅ Phase 5 — `05_importance_comparison.png`
 - Missing value before/after imputation chart ✅ Phase 2
 - Feature correlation heatmap ✅ Phase 3
 - Class distribution before/after SMOTE ✅ Phase 3
 
 ### Data Outputs
 
-| File | Phase | Shape | Size |
-|------|-------|-------|------|
-| `brfss_2022_2024_combined.csv` | 0 | 1,336,125 × 23 | 100.4 MB |
-| `brfss_cleaned.csv` | 2 | 1,252,580 × 17 | 82.4 MB |
-| `X_train.csv` | 3 | 1,002,064 × 14 | 62.2 MB |
-| `X_test.csv` | 3 | 250,516 × 14 | 15.6 MB |
-| `X_train_smote.csv` | 3 | 1,714,844 × 14 | 106.4 MB |
-| `y_train.csv` | 3 | (1,002,064,) | 2.9 MB |
-| `y_test.csv` | 3 | (250,516,) | 0.7 MB |
-| `y_train_smote.csv` | 3 | (1,714,844,) | 4.9 MB |
-| `models/scaler.pkl` | 3 | — | < 1 KB |
-| `models/saved_models/lr_balanced.pkl` | 4 | — | ~1.3 KB |
-| `models/saved_models/lr_smote.pkl` | 4 | — | ~1.3 KB |
-| `models/saved_models/rf_balanced.pkl` | 4 | — | ~2.1 GB |
-| `models/saved_models/rf_smote.pkl` | 4 | — | ~3.0 GB |
-| `models/saved_models/xgb_balanced.pkl` | 4 | — | ~468 KB |
-| `models/saved_models/xgb_smote.pkl` | 4 | — | ~432 KB |
-
-> **Note**: RF `.pkl` files (2–3 GB) are excluded from Git via `.gitignore`.
-> XGBoost and LR models are small enough to track but are also excluded
-> to keep the repository lightweight. Reproduce via `04_modeling.ipynb`.
+| File | Rows | Cols | Phase |
+|------|------|------|-------|
+| `brfss_2022_2024_combined.csv` | 1,336,125 | 23 | Phase 0 |
+| `brfss_cleaned.csv` | 1,252,580 | 17 | Phase 2 |
+| `X_train.csv` | 1,002,064 | 14 | Phase 3 |
+| `X_test.csv` | 250,516 | 14 | Phase 3 |
+| `X_train_smote.csv` | 1,714,844 | 14 | Phase 3 |
+| `y_train.csv` | 1,002,064 | — | Phase 3 |
+| `y_test.csv` | 250,516 | — | Phase 3 |
+| `y_train_smote.csv` | 1,714,844 | — | Phase 3 |
 
 ---
 
-## 10. Tech Stack
+## 10. Known Issues & Resolutions
 
-| Library | Version | Purpose |
-|---------|---------|---------|
-| Python | 3.11 | Core language |
-| pandas | ≥ 2.0 | Data loading and manipulation |
-| numpy | ≥ 1.26 | Numerical operations |
-| matplotlib | ≥ 3.7 | Plotting |
-| seaborn | ≥ 0.12 | Statistical visualisation |
-| scikit-learn | 1.4.2 | ML models, preprocessing, metrics |
-| imbalanced-learn | 0.14.1 | SMOTE oversampling |
-| statsmodels | ≥ 0.14 | VIF calculation |
-| scipy | ≥ 1.11 | Chi-square test |
-| xgboost | ≥ 2.0 | Gradient boosting model |
-| shap | ≥ 0.44 | Model interpretability |
-| joblib | ≥ 1.3 | Model and scaler serialisation |
+| Issue | Status | Resolution |
+|-------|--------|-----------|
+| Width estimation from codebook column gaps unreliable | ✅ Resolved | Explicit per-variable width definitions |
+| Three variables absent from one year's codebook | Deferred | Documented — no impact on final feature set |
+| `scaler.pkl` version mismatch on reload (UnpicklingError) | ✅ Resolved | Re-fit scaler from `X_train` at start of Phase 5 |
+| Base Anaconda DLL conflicts after imbalanced-learn upgrade | ✅ Resolved | Dedicated `diabetes-ml` conda environment (Python 3.11) |
+| RF model files too large for Git (2–3 GB) | ✅ Managed | Excluded via `.gitignore`; reproducible via notebook |
 
 ---
 
-## 11. Success Criteria
-
-- Clean, reproducible pipeline from raw CDC ASC files to trained models
-- Clear comparison of at least 3 models with ROC-AUC as primary metric ✅
-- Interpretable results via SHAP values with actionable insights ⏳ Phase 5
-- Proper handling of class imbalance and real-world data quality issues ✅
-- All decisions documented in `ProjectDriven.md` ✅
-
----
-
-## 12. Risks & Limitations
+## 11. Risks & Limitations
 
 | Risk | Status | Mitigation |
 |------|--------|-----------|
@@ -271,7 +252,7 @@ CDC BRFSS ASC + HTML Codebooks (2022, 2023, 2024)
 
 ---
 
-## 13. Repository Structure
+## 12. Repository Structure
 
 ```
 diabetes-risk-prediction/
@@ -294,9 +275,9 @@ diabetes-risk-prediction/
 │       └── y_train_smote.csv
 │
 ├── docs/
-│   ├── ProjectScope.md
-│   ├── methodology.md            # To be completed in Phase 5
-│   └── findings.md               # To be completed in Phase 5
+│   ├── p2_ProjectScope.md        # Original project specification (read-only reference)
+│   ├── methodology.md            # ✅ Complete — Phase 5
+│   └── findings.md               # ✅ Complete — Phase 5
 │
 ├── models/
 │   ├── scaler.pkl                # Fitted StandardScaler (Phase 3) — tracked by Git
@@ -309,21 +290,65 @@ diabetes-risk-prediction/
 │       └── xgb_smote.pkl         # ~432 KB — not tracked (reproducible)
 │
 ├── notebooks/
-│   ├── 00_data_collection.ipynb      ✅ Done
-│   ├── 01_data_understanding.ipynb   ✅ Done
-│   ├── 02_cleaning.ipynb             ✅ Done
-│   ├── 03_feature_engineering.ipynb  ✅ Done
-│   ├── 04_modeling.ipynb             ✅ Done
-│   └── 05_evaluation.ipynb           ⏳ Pending
+│   ├── 00_data_collection.ipynb      ✅ Complete
+│   ├── 01_data_understanding.ipynb   ✅ Complete
+│   ├── 02_cleaning.ipynb             ✅ Complete
+│   ├── 03_feature_engineering.ipynb  ✅ Complete
+│   ├── 04_modeling.ipynb             ✅ Complete
+│   └── 05_evaluation.ipynb           ✅ Complete
 │
 └── outputs/
-    ├── figures/                  # 16 figures (Phases 1–4)
+    ├── figures/                  # 21 figures (Phases 1–5)
     └── reports/
 ```
 
 ---
 
-## 14. Phase-by-Phase Decision Log
+## 13. Phase-by-Phase Decision Log
+
+### Phase 5 Decisions
+
+#### SHAP Setup
+- `shap.TreeExplainer` selected — computes exact Shapley values via tree structure (vs approximate KernelSHAP)
+- Background sample: 5,000 rows from X_train (random_state=42)
+- Explanation sample: 5,000 rows from X_test (random_state=42)
+- Base value: −0.7119 (constant across all samples — expected model output over background)
+
+#### SHAP Feature Importance Rankings
+
+| Rank | Feature | Mean \|SHAP\| |
+|------|---------|-------------|
+| 1 | `_AGEG5YR` | 0.709 |
+| 2 | `GENHLTH` | 0.550 |
+| 3 | `CHECKUP1` | 0.422 |
+| 4 | `_BMI5CAT` | 0.344 |
+| 5 | `_SEX` | 0.135 |
+| 6 | `DIFFWALK` | 0.106 |
+| 7 | `EXERANY2` | 0.103 |
+| 8 | `EDUCA` | 0.099 |
+| 9 | `INCOME3` | 0.094 |
+| 10 | `CVDINFR4` | 0.058 |
+| 11 | `MENTHLTH` | 0.058 |
+| 12 | `_SMOKER3` | 0.048 |
+| 13 | `PHYSHLTH` | 0.038 |
+| 14 | `CVDSTRK3` | 0.037 |
+
+#### Built-in Gain vs SHAP Agreement
+- 10/14 features agree within ±2 ranks
+- Top-4 features (`_AGEG5YR`, `GENHLTH`, `CHECKUP1`, `_BMI5CAT`) identical across both methods
+- `CVDINFR4`: XGB rank 5 → SHAP rank 10 — gain-based importance inflated by frequent splits
+- `_SEX`: XGB rank 8 → SHAP rank 5 — higher marginal prediction impact than structural role suggests
+
+#### CHECKUP1 Interpretation Note
+- `CHECKUP1` high values (long time since last checkup) push predictions negative
+- Likely reflects survivorship bias / healthcare access confounding — not a causal protective effect
+- Documented explicitly in `findings.md`
+
+#### Individual Prediction Examples
+- True Positive (p=0.944): GENHLTH=5, _AGEG5YR=10, CVDINFR4=1, _BMI5CAT=4, CVDSTRK3=1
+- True Negative (p=0.0003): _AGEG5YR=1, _BMI5CAT=1, CHECKUP1=2, GENHLTH=2
+
+---
 
 ### Phase 4 Decisions
 
@@ -339,7 +364,6 @@ diabetes-risk-prediction/
 | RF-Balanced | 0.7790 | 0.5942 | 0.6169 | 0.6021 | 0.7260 |
 
 #### Winner: XGB-Balanced
-
 - ROC-AUC: **0.8148** (highest across all 6 variants)
 - Recall (macro): 0.7395 | Sensitivity (class 1): **0.7971**
 - Specificity (class 0): 0.6819
@@ -347,23 +371,15 @@ diabetes-risk-prediction/
 - `scale_pos_weight = 857,422 / 144,642 = 5.9294`
 
 #### Imbalance Strategy Finding
-
 `class_weight='balanced'` / `scale_pos_weight` **outperformed SMOTE** across all three
 algorithm families. SMOTE improved Recall slightly but reduced ROC-AUC, suggesting
 synthetic minority samples do not generalise as well as loss-function reweighting on real data.
 
 #### Random Forest Performance
-
 RF underperformed both LR and XGBoost on ROC-AUC (0.726–0.737 vs 0.799–0.815).
 With unlimited `max_depth` and 14 ordinal/binary features, the 100-tree forest
 likely memorised the training data rather than learning generalisable patterns.
 RF model files are also extremely large (2.1–3.0 GB) vs XGBoost (~450 KB).
-
-#### Phase 5 Input
-
-- Model: `xgb_balanced.pkl`
-- Features: 14 (all columns of `X_train`)
-- Scaler: `models/scaler.pkl` (required for any new inference)
 
 ---
 
@@ -376,12 +392,7 @@ RF model files are also extremely large (2.1–3.0 GB) vs XGBoost (~450 KB).
 | `PHYSHLTH` | 2.18 | #5 | **RETAINED** |
 | `POORHLTH` | 2.05 | #6 | **DROPPED** |
 
-- VIF delta = 0.13 — not a meaningful tie-breaker
-- Tie broken by Phase 1 predictor rank
-- High VIFs on binary/ordinal vars (CVDSTRK3=77, CVDINFR4=66) are artefacts of applying VIF to non-continuous inputs — no action taken
-
 #### YEAR Column
-
 - Prevalence by year: 14.20% → 14.25% → 14.84% (range = 0.64pp)
 - Chi-square p = 6.82e-20: significant at n=1.25M, but trivially small effect size
 - **Dropped** — temporal leakage risk
@@ -397,38 +408,29 @@ RF model files are also extremely large (2.1–3.0 GB) vs XGBoost (~450 KB).
 | `_SEX` | {1.0: 594,489, 2.0: 658,091} | {0: 658,091, 1: 594,489} |
 
 #### Split & Scaling
-
 - 80/20 stratified split (random_state=42)
 - 14.4% class ratio preserved in both train and test
 - StandardScaler: PHYSHLTH mean=−0.0000, std=1.0000 | MENTHLTH mean=0.0000, std=1.0000
 
 #### SMOTE
-
 - Before: 857,422 (85.6%) / 144,642 (14.4%) — ratio 5.9:1
 - After SMOTE: 857,422 (50.0%) / 857,422 (50.0%) — perfectly balanced
 
 #### Environment Issue Resolved
-
-- Base Anaconda environment had DLL conflicts after `imbalanced-learn` upgrade (`_MissingValues` import error)
+- Base Anaconda environment had DLL conflicts after `imbalanced-learn` upgrade
 - Resolution: dedicated `diabetes-ml` conda environment (Python 3.11)
 - scikit-learn: 1.4.2 | imbalanced-learn: 0.14.1 | numpy: ≥1.26
-- `n_jobs` parameter removed from SMOTE call (dropped in imbalanced-learn ≥ 0.12)
 
 ### Phase 2 Decisions
 
 #### Revised Imputation Scope
 
-Phase 1 EDA reported missing rates before recoding special codes (7/9/77/99).
-After recoding, effective missing rates were substantially higher for several variables:
-
 | Variable | Phase 1 raw missing | Post-recode missing | Action revised |
 |----------|--------------------|--------------------|----------------|
-| `_AGEG5YR` | 0.0% | 16.9% | Median impute (was: no action needed) |
-| `_SMOKER3` | 0.0% | 6.8% | Median impute (was: no action needed) |
-| `PHYSHLTH` | ~0% | 4.5% | Median impute (was: row-drop at <3%) |
-| `MENTHLTH` | ~0% | 3.7% | Median impute (was: row-drop at <3%) |
-
-Applying row-drop to these variables would have removed ~390k rows (30%) — unacceptable data loss.
+| `_AGEG5YR` | 0.0% | 16.9% | Median impute |
+| `_SMOKER3` | 0.0% | 6.8% | Median impute |
+| `PHYSHLTH` | ~0% | 4.5% | Median impute |
+| `MENTHLTH` | ~0% | 3.7% | Median impute |
 
 #### Imputation Summary
 
@@ -442,22 +444,3 @@ Applying row-drop to these variables would have removed ~390k rows (30%) — una
 | `PHYSHLTH` | Median | 4.5% missing post-recode |
 | `MENTHLTH` | Median | 3.7% missing post-recode |
 | `DIFFWALK` | Mode | Binary — only two values |
-
----
-
-## 15. Inputs for Phase 5
-
-| File | Use |
-|------|-----|
-| `models/saved_models/xgb_balanced.pkl` | SHAP analysis — best performing model |
-| `X_train.csv` + `X_test.csv` | SHAP background dataset and test samples |
-| `y_test.csv` | Ground truth for evaluation plots |
-| `models/scaler.pkl` | Required if running inference on new data |
-
-### Phase 5 Planned Outputs
-
-- SHAP beeswarm plot (global feature importance)
-- SHAP waterfall plot (individual prediction explanation)
-- SHAP bar chart (mean absolute SHAP values)
-- Final model comparison narrative
-- `docs/methodology.md` and `docs/findings.md`
